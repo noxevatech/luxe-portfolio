@@ -243,7 +243,7 @@ html, body {
 
 /* Pinned Scroll Animations */
 .pinned-section {
-    height: 300vh; /* The distance the user has to scroll to finish the animation */
+    height: 300svh; /* Using svh (small viewport height) prevents jitter on mobile browsers */
     position: relative;
     background-color: #000;
 }
@@ -251,7 +251,7 @@ html, body {
 .sticky-container {
     position: sticky;
     top: 0;
-    height: 100vh;
+    height: 100svh; /* Using svh ensures the container doesn't bounce when address bar collapses */
     width: 100%;
     overflow: hidden;
 }

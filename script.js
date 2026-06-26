@@ -38,21 +38,31 @@ const ctx1 = canvas1.getContext('2d');
 const canvas2 = document.getElementById('canvas-2');
 const ctx2 = canvas2.getContext('2d');
 
+let currentWindowWidth = window.innerWidth;
+
 function resizeCanvases() {
-    const width = window.innerWidth * window.devicePixelRatio;
-    const height = window.innerHeight * window.devicePixelRatio;
+    // Cap pixel ratio at 2 to preserve frame rate on mobile devices
+    const dpr = Math.min(window.devicePixelRatio, 2);
+    const width = window.innerWidth * dpr;
+    const height = window.innerHeight * dpr;
     
     canvas1.width = width;
     canvas1.height = height;
     canvas2.width = width;
     canvas2.height = height;
     
-    // Draw initial frames to prevent blank canvases
-    drawToCanvas(canvas1, ctx1, 0); // Frame 1
-    drawToCanvas(canvas2, ctx2, 150); // Frame 151
+    drawToCanvas(canvas1, ctx1, currentFrameIndex1 || 0);
+    drawToCanvas(canvas2, ctx2, currentFrameIndex2 || 150);
 }
 
-window.addEventListener('resize', resizeCanvases);
+// On mobile, scrolling hides the address bar which triggers 'resize'.
+// We ONLY want to resize the canvas if the WIDTH changes (e.g. rotating phone).
+window.addEventListener('resize', () => {
+    if (window.innerWidth !== currentWindowWidth) {
+        currentWindowWidth = window.innerWidth;
+        resizeCanvases();
+    }
+});
 
 function drawToCanvas(canvas, ctx, frameIndex) {
     if (!images[frameIndex]) return;
@@ -104,17 +114,20 @@ window.addEventListener('scroll', () => {
 });
 
 // Render Loop for Lerping
+let currentFrameIndex1 = 0;
+let currentFrameIndex2 = 150;
+
 function renderLoop() {
     if (isLoaded) {
         // --- Anim 1 (Frames 0 to 149) ---
         currentProgress1 += (targetProgress1 - currentProgress1) * 0.08;
-        const frameIndex1 = Math.floor(currentProgress1 * 149);
-        drawToCanvas(canvas1, ctx1, frameIndex1);
+        currentFrameIndex1 = Math.floor(currentProgress1 * 149);
+        drawToCanvas(canvas1, ctx1, currentFrameIndex1);
         
         // --- Anim 2 (Frames 150 to 299) ---
         currentProgress2 += (targetProgress2 - currentProgress2) * 0.08;
-        const frameIndex2 = 150 + Math.floor(currentProgress2 * 149);
-        drawToCanvas(canvas2, ctx2, frameIndex2);
+        currentFrameIndex2 = 150 + Math.floor(currentProgress2 * 149);
+        drawToCanvas(canvas2, ctx2, currentFrameIndex2);
         
         // Handle Overlay Text Visibility via JS since CSS IntersectionObserver can be jittery with Lerp
         const overlay1 = anim1Section.querySelector('.overlay-text');
