@@ -32,11 +32,11 @@ async function preloadFrames() {
 
 preloadFrames();
 
-// Canvas Setup
+// Canvas Setup - using alpha: false for massive GPU performance boost
 const canvas1 = document.getElementById('canvas-1');
-const ctx1 = canvas1.getContext('2d');
+const ctx1 = canvas1.getContext('2d', { alpha: false });
 const canvas2 = document.getElementById('canvas-2');
-const ctx2 = canvas2.getContext('2d');
+const ctx2 = canvas2.getContext('2d', { alpha: false });
 
 let currentWindowWidth = window.innerWidth;
 
@@ -116,18 +116,29 @@ window.addEventListener('scroll', () => {
 // Render Loop for Lerping
 let currentFrameIndex1 = 0;
 let currentFrameIndex2 = 150;
+let lastDrawnFrame1 = -1;
+let lastDrawnFrame2 = -1;
 
 function renderLoop() {
     if (isLoaded) {
         // --- Anim 1 (Frames 0 to 149) ---
         currentProgress1 += (targetProgress1 - currentProgress1) * 0.08;
         currentFrameIndex1 = Math.floor(currentProgress1 * 149);
-        drawToCanvas(canvas1, ctx1, currentFrameIndex1);
+        
+        // Only draw if the frame actually changed AND the section is active
+        if (currentFrameIndex1 !== lastDrawnFrame1) {
+            drawToCanvas(canvas1, ctx1, currentFrameIndex1);
+            lastDrawnFrame1 = currentFrameIndex1;
+        }
         
         // --- Anim 2 (Frames 150 to 299) ---
         currentProgress2 += (targetProgress2 - currentProgress2) * 0.08;
         currentFrameIndex2 = 150 + Math.floor(currentProgress2 * 149);
-        drawToCanvas(canvas2, ctx2, currentFrameIndex2);
+        
+        if (currentFrameIndex2 !== lastDrawnFrame2) {
+            drawToCanvas(canvas2, ctx2, currentFrameIndex2);
+            lastDrawnFrame2 = currentFrameIndex2;
+        }
         
         // Handle Overlay Text Visibility via JS since CSS IntersectionObserver can be jittery with Lerp
         const overlay1 = anim1Section.querySelector('.overlay-text');
